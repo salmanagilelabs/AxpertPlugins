@@ -245,7 +245,7 @@
     let filteredObjects = [];
     let adsfieldvalueanddt = {};
     let createfieldnamevaluesList = {};
-    let AxiArmUrl;
+    let AxiArmUrl; 
     let mode = "";
     let isCommandsLoading = false;
     const aiModeCommands = {
@@ -261,18 +261,18 @@
 
 
     function init() {
-        //  "API_METADATA": "http://localhost:90/AxiApi/api/v1/Axi/axi_get",    
+    //  "API_METADATA": "http://localhost:90/AxiApi/api/v1/Axi/axi_get",    
+    
+    // "AXI_FAVORITES_URL": "http://localhost:90/AxiApi/api/v1/Axi/user-favourites"
 
-        // "AXI_FAVORITES_URL": "http://localhost:90/AxiApi/api/v1/Axi/user-favourites"
+        AxiArmUrl = window.armUrl; 
+        console.log("AxiArmUrl = " + AxiArmUrl); 
+        apiMetadataUrl = `${AxiArmUrl}/AxiApi_Beta/api/v1/Axi/axi_get`; 
+        console.log("ApiMetadataUrl = " + apiMetadataUrl); 
 
-        AxiArmUrl = armUrl;
-        console.log("AxiArmUrl = " + AxiArmUrl);
-        apiMetadataUrl = `${AxiArmUrl}/AxiApi_Beta/api/v1/Axi/axi_get`;
-        console.log("ApiMetadataUrl = " + apiMetadataUrl);
-
-        axiFavoritesUrl = `${AxiArmUrl}/AxiApi_Beta/api/v1/Axi/user-favourites`;
+        axiFavoritesUrl = `${AxiArmUrl}/AxiApi_Beta/api/v1/Axi/user-favourites`; 
         // axiFavoritesUrl = `http://localhost:5057/api/v1/Axi/user-favourites`; 
-        console.log("AxiFavoritesUrl = " + axiFavoritesUrl);
+        console.log("AxiFavoritesUrl = " + axiFavoritesUrl); 
 
 
         input = document.getElementById("Axi-Searchinp");
@@ -404,7 +404,7 @@
         // console.log(appname);
         // return appname;
 
-        return window.mainProject;
+        return window.mainProject; 
 
 
     }
@@ -462,7 +462,7 @@
                     showToast("No commands found. Please check 'AxiApi' Configuration")
                     return;
                 }
-
+                    
                 const message = isForced ? "Refreshed Successfully!" : "Commands Loaded Successfully!."
 
                 showToast(message, 3000, true);
@@ -1832,25 +1832,6 @@
         lastTypedTokens = [...currentTokens];
         items = suggestLocal(text);
 
-        const tokens = getTokens(text);
-const grpKey = tokens[0]?.toLowerCase();
-
-if (
-    grpKey === "view" &&
-    tokens.length > 1 &&
-    !text.endsWith(" ")
-) {
-    items = items.filter(item => {
-        const itemText = (
-            typeof item === "string"
-                ? item
-                : (item.displaydata || item.name || "")
-        ).toLowerCase();
-
-        return itemText !== "source";
-    });
-}
-
 
         render();
 
@@ -2083,16 +2064,6 @@ if (
             return processAdsRepetitiveTokens(tokens, commandConfig);
     }
 
-    function isValidSuggestion(item) {
-        return !!(
-            item &&
-            (
-                (typeof item.displaydata === "string" && item.displaydata.trim()) ||
-                (typeof item.name === "string" && item.name.trim())
-            )
-        );
-    }
-
 
     function processAdsRepetitiveTokens(tokens, commandConfig) {
         let targetIndex = tokens.length - 1;
@@ -2128,17 +2099,7 @@ if (
             }
 
             const list = axDatasourceObj[sourceKey];
-            if (!Array.isArray(list)) {
-                filteredObjects = [goOption, popOption];
-                return [goOption, popOption];
-            }
-
-            const safeList = list.filter(isValidSuggestion);
-
-            if (safeList.length === 0) {
-                filteredObjects = [goOption, popOption];
-                return [goOption, popOption];
-            }
+            if (!Array.isArray(list)) return [];
 
 
             const usedColumns = new Set();
@@ -2150,7 +2111,7 @@ if (
 
 
 
-            const filtered = safeList.filter(col => {
+            const filtered = list.filter(col => {
 
                 const rawDisplay = (col?.displaydata || col?.name)?.toLowerCase();
 
@@ -2167,8 +2128,6 @@ if (
 
                 return !isUsed && matchesInput;
             });
-
-
 
 
             SET_COMMAND_STATE.currentField = null;
@@ -2244,28 +2203,11 @@ if (
                     }
 
 
-                    const safeColList = colList.filter(isValidSuggestion);
 
 
-                    // const filtered = colList.filter(col => {
+                    const filtered = colList.filter(col => {
 
-                    //     const rawDisplay = (col.displaydata || col.name).toLowerCase();
-
-                    //     const cleanDisplay = rawDisplay
-                    //         .replace(/\s*\(.*?\)/g, "")
-                    //         .replace(/\s*\[[^\]]+\]\s*$/, "")
-                    //         .trim();
-
-                    //     const rawName = (col.name || "").toLowerCase();
-
-                    //     const isUsed = usedColumns.has(cleanDisplay) || usedColumns.has(rawName);
-
-                    //     return !isUsed;
-                    // });
-
-                    const filtered = safeColList.filter(col => {
-                        const rawDisplay = (col.displaydata || col.name || "")
-                            .toLowerCase();
+                        const rawDisplay = (col.displaydata || col.name).toLowerCase();
 
                         const cleanDisplay = rawDisplay
                             .replace(/\s*\(.*?\)/g, "")
@@ -2274,9 +2216,7 @@ if (
 
                         const rawName = (col.name || "").toLowerCase();
 
-                        const isUsed =
-                            usedColumns.has(cleanDisplay) ||
-                            usedColumns.has(rawName);
+                        const isUsed = usedColumns.has(cleanDisplay) || usedColumns.has(rawName);
 
                         return !isUsed;
                     });
@@ -3038,7 +2978,7 @@ if (
 
 
                 if (!paramValue || paramValue.trim() === "") {
-                    console.log("Skipping extraParams ï¿½ dependency not resolved yet");
+                    console.log("Skipping extraParams – dependency not resolved yet");
 
                 } else {
                     const extraSource = activePrompt.extraParams.toLowerCase();
@@ -3050,7 +2990,7 @@ if (
 
                         console.log(`Fetching Hidden Param Source: ${extraSource}`);
                         if (tokens[1].toLowerCase() === "inbox") {
-                            return [goOption];
+                            return [goOption]; 
                         }
                         loadList(extraSource, paramValue);
                         return [];
@@ -3179,7 +3119,7 @@ if (
                 }
                 if (hasValidParams) {
                     if (tokens[1].toLowerCase() === "inbox") {
-                        return [goOption];
+                        return  [goOption]; 
                     }
                     loadList(apiSourceName, paramValue);
                     console.log(axDatasourceObj);
@@ -3857,8 +3797,6 @@ if (
         if (items.length > 0 && isSystemMessage(items[0])) {
             activeIndex = -1;
         } else {
-            const currentTokens = getTokens(input.value.trim());
-            const isUserTyping = currentTokens.length > 1 && !input.value.endsWith(" ");
             // const hasGoOption = validItems.some(item => typeof item === 'object' && item.name === "GO_ACTION");
             // const hasSaveOption = validItems.some(item => typeof item === 'object' && item.name === "Save_ACTION");
 
@@ -3869,35 +3807,7 @@ if (
             // } else {
             //     activeIndex = 0; 
             // }
-            // activeIndex = 0;
-            //           if (isUserTyping) {
-            //     const firstNonActionIndex = validItems.findIndex(
-            //         item => typeof item !== 'object' || !item.isExecutable || item === "source"
-            //     );
-            //     activeIndex = firstNonActionIndex !== -1 ? firstNonActionIndex : 0;
-            // } else {
-            //     activeIndex = 0;
-            // }
-
-            if (isUserTyping) {
-                const lastToken = cleanString(
-                    currentTokens[currentTokens.length - 1]
-                ).toLowerCase();
-
-                const matchedIndex = validItems.findIndex(item => {
-                    const text =
-                        typeof item === "string"
-                            ? item.toLowerCase()
-                            : (item.displaydata || item.name || "").toLowerCase();
-
-                    return text.startsWith(lastToken);
-                });
-
-                activeIndex = matchedIndex !== -1 ? matchedIndex : 0;
-            } else {
-                activeIndex = 0;
-            }
-
+            activeIndex = 0;
         }
 
         // if (items.length > 0 && isSystemMessage(items[0])) {
@@ -4821,9 +4731,7 @@ if (
                     const tokens = getTokens(val);
                     const lastTokenRaw = tokens[tokens.length - 1] || "";
 
-                    const isFirstToken = tokens.length === 1;
-
-                    if (!lastTokenRaw.startsWith('"') && !isFirstToken) {
+                    if (!lastTokenRaw.startsWith('"')) {
                         const hasMultiWordMatch = items.some(item => {
                             const str = (typeof item === 'string' ? item : item.displaydata).toLowerCase();
                             return str.startsWith(lastTokenRaw.toLowerCase()) && str.includes(" ");
@@ -6249,7 +6157,7 @@ if (
 
 
         // const item = viewList.find(v => v.displaydata.includes(text));
-        const normalizedText = text.trim().toLowerCase();
+         const normalizedText = text.trim().toLowerCase();
 
         const rawTokenText = tokens[1] ? cleanCommandToken(tokens[1]).toLowerCase() : normalizedText;
 
@@ -6351,10 +6259,10 @@ if (
 
             resolvedName = found.name;
         }
-        const cmdText = `${tokens[0]} ${tokens[1]} ${resolvedName}`;
+        const cmdText = `${tokens[0]} ${tokens[1]} ${resolvedName}`; 
 
-        setCommandRoutes(cmdText, "");
-
+            setCommandRoutes(cmdText, "");
+        
         if (type.toLowerCase() === "tstruct") {
             window.openDeveloperStudio("tstreact", resolvedName, true);
         } else if (type.toLowerCase() === "iview") {
@@ -8523,7 +8431,7 @@ if (
                     $el.val(valuesArray).trigger("change");
                 }
 
-                // ?? VERY IMPORTANT ï¿½ update Axpert internal array
+                // ?? VERY IMPORTANT — update Axpert internal array
                 if (typeof iframeWin.UpdateFieldArray === "function") {
                     iframeWin.UpdateFieldArray(fldid, rowNo, value, "parent", "");
                 }
@@ -9978,7 +9886,7 @@ if (
     }
 
     function toggleFavorite(cmdText, isAdding = false) {
-        let cmdIndex;
+        let cmdIndex; 
         const tokens = getTokens(cmdText.trim());
 
 
@@ -10004,7 +9912,7 @@ if (
             cmdIndex = commandFavorites.findIndex(fav => fav?.commandText?.toLowerCase() === cmdText.toLowerCase());
         }
 
-
+       
 
         const commandRoute = commandRoutes.find(route => route.commandText.toLowerCase() === cmdText.toLowerCase());
 
@@ -10299,17 +10207,17 @@ if (
         } else {
 
             // executeCommandsV2();
-            const firstToken = tokens[0];
-            const secondToken = tokens[1];
+            const firstToken = tokens[0]; 
+            const secondToken = tokens[1]; 
 
             if (firstToken.toLowerCase() === "devtools" && secondToken.toLowerCase() === "tstruct") {
-                window.openDeveloperStudio("tstreact", secondToken, true);
+                  window.openDeveloperStudio("tstreact", secondToken, true);
 
             } else {
-                window.openDeveloperStudio("ivreact", secondToken, true);
+                 window.openDeveloperStudio("ivreact", secondToken, true);
 
             }
-
+            
 
 
         }
@@ -10355,7 +10263,7 @@ if (
         let importAccess;
         let exportAccess;
         let buildAccess;
-
+       
 
 
         const appMgrAccessKey = generateLocalStorageKey("appMgrAccess", window.mainUserName);
@@ -10397,10 +10305,10 @@ if (
     }
 
     function buildCommandsByAccessPermissions(commandsFromDb, accessPermissions) {
-        const currentUserRole = window.AxUserRoles;
-        const currentUserName = window.mainUserName;
+         const currentUserRole = window.AxUserRoles; 
+         const currentUserName = window.mainUserName; 
 
-
+        
         for (const [permissionKey, hasAccess] of Object.entries(accessPermissions)) {
             if (!hasAccess || hasAccess === false) {
                 switch (permissionKey) {
@@ -10425,25 +10333,25 @@ if (
             }
         }
 
-        if (!commandsFromDb["Configure"]) return commandsFromDb;
+       if (!commandsFromDb["Configure"]) return commandsFromDb; 
 
-        const isAdmin = currentUserName === "admin" && currentUserRole === "default";
+       const isAdmin = currentUserName === "admin" && currentUserRole === "default"; 
 
-        if (!isAdmin) {
-            const configurePrompts = commandsFromDb["Configure"].prompts;
+       if (!isAdmin) {
+        const configurePrompts = commandsFromDb["Configure"].prompts; 
 
-            configurePrompts.forEach(prompt => {
-                if (prompt.prompt === "object type" && prompt.promptValues) {
-                    let values = prompt.promptValues.split(",");
+        configurePrompts.forEach(prompt => {
+            if (prompt.prompt === "object type" && prompt.promptValues) {
+                let values = prompt.promptValues.split(","); 
 
-                    values = values.filter(v => v.trim() !== "User Activation");
+                values = values.filter(v => v.trim() !== "User Activation"); 
 
-                    prompt.promptValues = values.join(",");
-                }
-            });
-        }
+                prompt.promptValues  = values.join(","); 
+            }
+        }); 
+       }
 
-        return commandsFromDb;
+       return commandsFromDb; 
 
 
     }
@@ -10735,7 +10643,7 @@ if (
             }
 
         } else if (isCardContainerHidden && src.includes("tstruct.aspx")) {
-            try {
+             try {
                 const queryString = src.includes("?") ? src.split("?")[1] : "";
 
                 const params = new URLSearchParams(queryString);

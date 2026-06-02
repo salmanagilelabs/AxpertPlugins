@@ -1622,3 +1622,119 @@ return query execute v_sql;
 
 END; $function$
 >>
+
+create or replace
+function fn_smartview_metadata(p_svname character varying)
+ returns table(sv_name character varying,
+sv_caption character varying,
+sv_sourcecnd integer,
+sqlname character varying,
+api_config text,
+memdb_key character varying,
+allowedit character varying,
+editmode character varying,
+allownew character varying,
+newforms character varying,
+newforms_transid character varying,
+bulksave character varying,
+dataupload character varying,
+validatedata character varying,
+sv_keycol character varying,
+savemode character varying,
+fldname character varying,
+fldcaption character varying,
+fdatatype character varying,
+normalized character varying,
+sourcetable character varying,
+sourcefld character varying,
+hyp_structtype character varying,
+hyp_transid character varying,
+tbl_hyperlink text,
+hyp_inline character varying,
+dynamiccolumns varchar,
+filters varchar,
+pagination varchar,
+sorting varchar,
+col_hide character varying,
+col_filter character varying,
+keyfield character varying
+,displaydata varchar
+,name varchar
+,caption varchar
+)
+ language plpgsql
+as $function$
+begin
+    return QUERY
+    select
+ a.sv_name,
+ a.sv_caption,
+ case
+  when a.readfromcache = 'T' then 3
+  else a.sv_sourcecnd
+ end::INT as sv_sourcecnd,
+ a.adsname as sqlname,
+ a.api_config,
+ a.memdb_key,
+ a.allowedit,
+ a.editmode,
+ a.allownew,
+ a.newforms,
+ a.newforms_transid,
+ a.bulksave,
+ a.dataupload,
+ a.validatedata,
+ a.sv_keycol,
+ a.savemode,
+ b.fldname,
+ b.fldcaption,
+ b.fdatatype,
+ b."normalized",
+ f.tablename as sourcetable,
+ f.fname as sourcefld,
+ hl.hyp_structtype,
+ hl.hyp_transid,
+ REGEXP_REPLACE(hl.tbl_hyperlink,
+ '[A-Za-z ]+\*-\(([^)]+)\)',
+ '\1',
+ 'g')::text as tbl_hyperlink,
+ hl.hyp_inline,
+ 'T'::varchar as dynamiccolumns,
+ 'T'::varchar as filters,
+ 'T'::varchar as pagination,
+ 'T'::varchar as sorting,
+ b.hide as col_hide,
+ b."filter" as col_filter,
+ b.keyfield
+,cast(b.fldcaption::varchar || '(' || b.fldname::varchar || ')' as varchar) displaydata
+,b.fldname::varchar name
+,b.fldcaption::varchar caption
+from
+ axpdef_smartlist a
+join axpdef_smartlist_mdata b on
+ a.axpdef_smartlistid = b.axpdef_smartlistid
+left join axpflds f on
+ b.srctransid = f.tstruct
+ and b.srcfldname = f.fname
+left join (
+ select
+  sub_hl.axpdef_smartlistid,
+  sub_hl.hfldname,
+  sub_hl.hyp_structtype,
+  sub_hl.hyp_transid,
+  sub_hl.tbl_hyperlink,
+  sub_hl.hyp_inline
+ from
+  axpdef_smartlist_hlink sub_hl
+    ) hl on
+ hl.axpdef_smartlistid = a.axpdef_smartlistid
+ and b.fldname = hl.hfldname
+where
+ a.adsname = p_svname
+order by
+ b.axpdef_smartlist_mdatarow;
+end;
+
+$function$
+;
+ 
