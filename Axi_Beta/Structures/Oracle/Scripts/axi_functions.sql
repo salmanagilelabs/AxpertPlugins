@@ -1206,7 +1206,7 @@ BEGIN
 
     RETURN v_result;
 
-END axi_firesql_v2;
+END axi_firesql_v2
 /
 >>
 
