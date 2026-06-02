@@ -1220,7 +1220,7 @@ BEGIN
 
                 PIPE ROW(
                     axi_firesql_obj(
-                        ''0'',
+                        '0',
                         v_col1
                     )
                 );
