@@ -1060,14 +1060,14 @@ CREATE OR REPLACE TYPE axi_firesql_tab AS TABLE OF axi_firesql_obj
 <<
 -- Function
 CREATE OR REPLACE FUNCTION axi_firesql_v2 (
-    p_sql          IN VARCHAR2,       -- Changed: CLOB → VARCHAR2 (DBX cannot bind CLOB params)
+    p_sql          IN VARCHAR2,
     p_param_string IN VARCHAR2,
     p_sourcekey    IN VARCHAR2,
     p_fromlist     IN VARCHAR2
 )
-RETURN axi_firesql_tab PIPELINED
+RETURN axi_firesql_tab
 AS
-    v_sql          VARCHAR2(32767);   -- Changed: CLOB → VARCHAR2
+    v_sql          VARCHAR2(32767);
 
     v_pair         VARCHAR2(4000);
     v_param_name   VARCHAR2(1000);
@@ -1081,6 +1081,8 @@ AS
 
     v_col1         VARCHAR2(4000);
     v_col2         VARCHAR2(4000);
+
+    v_result       axi_firesql_tab := axi_firesql_tab();
 
 BEGIN
 
@@ -1128,7 +1130,6 @@ BEGIN
             v_pos := v_next + 1;
 
         END LOOP;
-
     END IF;
 
     ------------------------------------------------------------------
@@ -1140,51 +1141,61 @@ BEGIN
     THEN
 
         FOR r IN (
-            SELECT
-                TRIM(REGEXP_SUBSTR(p_fromlist, '[^,]+', 1, LEVEL)) val
+            SELECT TRIM(REGEXP_SUBSTR(p_fromlist, '[^,]+', 1, LEVEL)) val
             FROM dual
             CONNECT BY REGEXP_SUBSTR(p_fromlist, '[^,]+', 1, LEVEL) IS NOT NULL
         )
         LOOP
             IF r.val IS NOT NULL AND TRIM(r.val) IS NOT NULL THEN
-                PIPE ROW (axi_firesql_obj('0', r.val));
+                v_result.EXTEND;
+                v_result(v_result.COUNT) :=
+                    axi_firesql_obj('0', r.val);
             END IF;
         END LOOP;
 
     ELSE
 
         ------------------------------------------------------------------
-        -- Sourcekey = T  →  return col1 + col2
+        -- Sourcekey = T
         ------------------------------------------------------------------
         IF UPPER(NVL(p_sourcekey, 'F')) = 'T' THEN
 
             OPEN rc FOR
-                'SELECT col1, RTRIM(RTRIM(col2,''0''),''.'') AS displaydata
+                'SELECT col1,
+                        RTRIM(RTRIM(col2,''0''),''.'') AS displaydata
                  FROM (' || v_sql || ')
-                 WHERE col2 IS NOT NULL AND TRIM(col2) IS NOT NULL';
+                 WHERE col2 IS NOT NULL
+                   AND TRIM(col2) IS NOT NULL';
 
             LOOP
                 FETCH rc INTO v_col1, v_col2;
                 EXIT WHEN rc%NOTFOUND;
-                PIPE ROW (axi_firesql_obj(v_col1, v_col2));
+
+                v_result.EXTEND;
+                v_result(v_result.COUNT) :=
+                    axi_firesql_obj(v_col1, v_col2);
             END LOOP;
 
             CLOSE rc;
 
         ------------------------------------------------------------------
-        -- Sourcekey != T  →  return col1 only
+        -- Sourcekey != T
         ------------------------------------------------------------------
         ELSE
 
             OPEN rc FOR
                 'SELECT RTRIM(RTRIM(col1,''0''),''.'') AS displaydata
                  FROM (' || v_sql || ')
-                 WHERE col1 IS NOT NULL AND TRIM(col1) IS NOT NULL';
+                 WHERE col1 IS NOT NULL
+                   AND TRIM(col1) IS NOT NULL';
 
             LOOP
                 FETCH rc INTO v_col1;
                 EXIT WHEN rc%NOTFOUND;
-                PIPE ROW (axi_firesql_obj('0', v_col1));
+
+                v_result.EXTEND;
+                v_result(v_result.COUNT) :=
+                    axi_firesql_obj('0', v_col1);
             END LOOP;
 
             CLOSE rc;
@@ -1193,9 +1204,10 @@ BEGIN
 
     END IF;
 
-    RETURN;
+    RETURN v_result;
 
-END axi_firesql_v2
+END axi_firesql_v2;
+/
 >>
 
 
