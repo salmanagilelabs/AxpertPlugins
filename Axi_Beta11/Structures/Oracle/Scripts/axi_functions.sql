@@ -743,15 +743,11 @@ CREATE OR REPLACE FUNCTION fn_permissions_getpermission(
 ) RETURN AXPDEF_PERMISSION_MDATA_OBJ PIPELINED
 AS    
     rc  SYS_REFCURSOR;
-    -- Declare local variables
     v_menuaccess_count NUMBER(10);     
     v_sql_roles VARCHAR2(4000);
-   -- v_sql_permission_check VARCHAR2(4000);
     rolesql clob;
     v_permissionsql clob;
     v_permissionexists number(10);
-    
-    -- Variables to hold results before piping
     v_transid_loop VARCHAR2(250);
     v_fullcontrol VARCHAR2(1);
     v_userrole VARCHAR2(250);
@@ -770,11 +766,8 @@ AS
     v_filtercnd NCLOB;
     v_viewctrl VARCHAR2(1);
     v_editctrl VARCHAR2(1);
-    --v_viewlist VARCHAR2(4000);
-    --v_editlist VARCHAR2(4000);
     v_encryptedflds clob;
-    v_permissiontype varchar2(10);
-        
+    v_permissiontype varchar2(10);        
     v_view_includedflds    clob;
     v_view_excludedflds    clob;
     v_edit_includedflds    clob;
@@ -785,7 +778,7 @@ AS
 
 
 BEGIN
-    -- Loop through each transid in the comma-separated string
+    
     FOR rec_transid IN (SELECT COLUMN_VALUE AS transid FROM TABLE(string_to_array(ptransid, ','))) LOOP
         v_transid_loop := rec_transid.transid; 
 
@@ -908,7 +901,7 @@ EXECUTE immediate v_permissionsql into  v_permissionexists;
            WHERE tstruct = v_transid_loop AND encrypted = 'T';        
             
 
-            -- Pipe the row
+
             PIPE ROW (AXPDEF_PERMISSION_MDATA(
                 v_transid_loop, v_fullcontrol, v_userrole, v_allowcreate, v_view_access,
                 v_view_includedc, v_view_excludedc, v_view_includeflds, v_view_excludeflds,
@@ -1020,11 +1013,6 @@ FROM axpflds WHERE tstruct = rec_transid.transid AND encrypted = 'T'
     END if;
 
   END LOOP;
-
-        
-     
-
-
     RETURN; 
 END
 >>
@@ -1043,7 +1031,6 @@ DROP TYPE axi_firesql_obj
 
 
 <<
--- Object Type
 CREATE OR REPLACE TYPE axi_firesql_obj AS OBJECT (
     id          VARCHAR2(4000),
     displaydata VARCHAR2(4000)
@@ -1052,7 +1039,6 @@ CREATE OR REPLACE TYPE axi_firesql_obj AS OBJECT (
 
 
 <<
--- Table Type
 CREATE OR REPLACE TYPE axi_firesql_tab AS TABLE OF axi_firesql_obj
 >>
 
@@ -1074,7 +1060,7 @@ AS
     v_refcursor    SYS_REFCURSOR;
 BEGIN
 
-    -- Replace parameters
+
     IF p_param_string IS NOT NULL
        AND TRIM(p_param_string) <> ''
        AND INSTR(v_sql, ':') > 0
@@ -1109,7 +1095,7 @@ BEGIN
         END LOOP;
     END IF;
 
-    -- FROM LIST handling
+
     IF p_fromlist IS NOT NULL
        AND TRIM(p_fromlist) <> ''
        AND LOWER(TRIM(p_fromlist)) <> 'null'
@@ -1126,7 +1112,7 @@ BEGIN
 
     ELSE
 
-        -- Two-column result
+        
         IF UPPER(NVL(p_sourcekey,'F')) = 'T'
         THEN
             OPEN v_refcursor FOR
@@ -1143,7 +1129,7 @@ BEGIN
                  WHERE col2 IS NOT NULL
                  AND TRIM(TO_CHAR(col2)) <> ''''';
 
-        -- Single-column result
+        
         ELSE
             OPEN v_refcursor FOR
                 'SELECT
@@ -1195,13 +1181,13 @@ CREATE OR REPLACE TYPE obj_getstructlist AS OBJECT (
 )
 >>
 
----------------------------------------------
+
 
 <<
 CREATE OR REPLACE TYPE tab_getstructlist AS TABLE OF obj_getstructlist
 >>
 
---------------------------------------------
+
 
 <<
 CREATE OR REPLACE FUNCTION axi_fn_getstructlist (
