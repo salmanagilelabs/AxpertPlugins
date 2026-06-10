@@ -117,31 +117,27 @@ BEGIN
     WHERE tstruct = ptransid
       AND LOWER(fname) = LOWER(pkeyfield);
 
-    BEGIN
-
+    v_selectedfld_normalized := 'F';
+    v_selectedfld_srctbl := NULL;
+    v_selectedfld_srcfld := NULL;
+    FOR rec IN (
         SELECT srckey,
-               LOWER(srctf),
-               LOWER(srcfld)
-        INTO v_selectedfld_normalized,
-             v_selectedfld_srctbl,
-             v_selectedfld_srcfld
+               LOWER(srctf) AS srctf,
+               LOWER(srcfld) AS srcfld
         FROM axpflds
         WHERE tstruct = ptransid
-          AND LOWER(fname) = LOWER(pselectedfield);
-
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            v_selectedfld_normalized := 'F';
-            v_selectedfld_srctbl := NULL;
-            v_selectedfld_srcfld := NULL;
-    END;
+          AND LOWER(fname) = LOWER(pselectedfield)
+    ) LOOP
+        v_selectedfld_normalized := rec.srckey;
+        v_selectedfld_srctbl := rec.srctf;
+        v_selectedfld_srcfld := rec.srcfld;
+    END LOOP;
 
     IF pdimension = 'T' THEN
 
-        BEGIN
-
+        v_dimension_filter := NULL;
+        FOR rec IN (
             SELECT filtercnd
-            INTO v_dimension_filter
             FROM TABLE(
                 fn_permissions_getpermission(
                     'axi',
@@ -151,41 +147,35 @@ BEGIN
                     pglobalvars
                 )
             )
-            WHERE ROWNUM = 1;
+            WHERE ROWNUM = 1
+        ) LOOP
+            v_dimension_filter := rec.filtercnd;
+        END LOOP;
 
-            IF LENGTH(v_dimension_filter) > 2 THEN
+        IF LENGTH(v_dimension_filter) > 2 THEN
 
-                v_dimension_filter :=
-                    ' AND ' ||
-                    REPLACE(
-                        v_dimension_filter,
-                        '{primarytable.}',
-                        'p.'
-                    );
+            v_dimension_filter :=
+                ' AND ' ||
+                REPLACE(
+                    v_dimension_filter,
+                    '{primarytable.}',
+                    'p.'
+                );
 
-            END IF;
-
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_dimension_filter := NULL;
-        END;
+        END IF;
 
     END IF;
 
     IF ppermission = 'T' THEN
 
-        BEGIN
-
-            SELECT LOWER(view_includedc || view_includeflds),
-                   LOWER(view_excludedc || view_excludeflds),
+        v_viewctrl := '0';
+        v_fullcontrol := 'T';
+        FOR rec IN (
+            SELECT LOWER(view_includedc || view_includeflds) AS inc,
+                   LOWER(view_excludedc || view_excludeflds) AS exc,
                    viewctrl,
                    editctrl,
                    fullcontrol
-            INTO v_includedcomps,
-                 v_excludedcomps,
-                 v_viewctrl,
-                 v_editctrl,
-                 v_fullcontrol
             FROM TABLE(
                 fn_permissions_getpermission(
                     'axi',
@@ -195,13 +185,14 @@ BEGIN
                     pglobalvars
                 )
             )
-            WHERE ROWNUM = 1;
-
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_viewctrl := '0';
-                v_fullcontrol := 'T';
-        END;
+            WHERE ROWNUM = 1
+        ) LOOP
+            v_includedcomps := rec.inc;
+            v_excludedcomps := rec.exc;
+            v_viewctrl      := rec.viewctrl;
+            v_editctrl      := rec.editctrl;
+            v_fullcontrol   := rec.fullcontrol;
+        END LOOP;
 
         IF v_fullcontrol = 'T'
            OR v_viewctrl = '0' THEN
