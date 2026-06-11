@@ -435,9 +435,7 @@ END;
 
 >>
 
-<<
-ALTER FUNCTION FN_AXI_GETSTRUCTS_OBJ COMPILE
->>
+
 
 <<
 CREATE OR REPLACE FUNCTION fn_axi_getstructures_meta(
@@ -1271,6 +1269,19 @@ BEGIN
     RETURN;
 END;
 
+>>
+
+<<
+ALTER FUNCTION FN_AXI_GETSTRUCTS_OBJ COMPILE
+>>
+
+<<
+BEGIN
+  DBMS_UTILITY.COMPILE_SCHEMA(
+    schema => USER,
+    compile_all => FALSE
+  );
+END;
 >>
 
 
