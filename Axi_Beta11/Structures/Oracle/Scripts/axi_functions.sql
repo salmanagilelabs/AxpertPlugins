@@ -436,6 +436,10 @@ END;
 >>
 
 <<
+ALTER FUNCTION FN_AXI_GETSTRUCTS_OBJ COMPILE
+>>
+
+<<
 CREATE OR REPLACE FUNCTION fn_axi_getstructures_meta(
     pusername        IN VARCHAR2, 
     puserrole        IN VARCHAR2, 
